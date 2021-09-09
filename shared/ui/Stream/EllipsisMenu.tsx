@@ -32,11 +32,17 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		const team = state.teams[teamId];
 		const user = state.users[state.session.userId!];
 		const onPrem = state.configs.isOnPrem;
+		const currentCompanyId = team.companyId;
 
 		return {
 			sidebarPanePreferences: state.preferences.sidebarPanes || EMPTY_HASH,
 			sidebarPaneOrder: state.preferences.sidebarPaneOrder || AVAILABLE_PANES,
-			userTeams: _sortBy(Object.values(state.teams).filter(t => !t.deactivated), "name"),
+			userCompanies: _sortBy(Object.values(state.companies), "name"),
+			userTeams: _sortBy(
+				Object.values(state.teams).filter(t => !t.deactivated),
+				"name"
+			),
+			currentCompanyId,
 			currentTeamId: teamId,
 			serverUrl: state.configs.serverUrl,
 			company: state.companies[team.companyId] || {},
@@ -53,19 +59,22 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 	});
 
 	const buildSwitchTeamMenuItem = () => {
-		const { userTeams, currentTeamId } = derivedState;
+		const { userCompanies, currentCompanyId, userTeams } = derivedState;
 
 		const buildSubmenu = () => {
-			const items = userTeams.map(team => {
-				const isCurrentTeam = team.id === currentTeamId;
+			const items = userCompanies.map(company => {
+				const isCurrentCompany = company.id === currentCompanyId;
+
 				return {
-					key: team.id,
-					label: team.name,
+					key: company.id,
+					label: company.name,
 					// icon: isCurrentTeam ? <Icon name="check" /> : undefined,
-					checked: isCurrentTeam,
-					noHover: isCurrentTeam,
+					checked: isCurrentCompany,
+					noHover: isCurrentCompany,
 					action: () => {
-						if (!isCurrentTeam) dispatch(switchToTeam(team.id));
+						if (isCurrentCompany) return;
+						const team = userTeams.find(_ => _.companyId === company.id && _.isEveryoneTeam);
+						if (team) dispatch(switchToTeam(team.id));
 					}
 				};
 			}) as any;
@@ -73,11 +82,11 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			items.push(
 				{ label: "-" },
 				{
-					key: "create-team",
+					key: "create-company",
 					icon: <Icon name="plus" />,
-					label: "Create New Team",
+					label: "Create New Organization",
 					action: () => {
-						dispatch(openModal(WebviewModals.CreateTeam));
+						dispatch(openModal(WebviewModals.CreateCompany));
 					}
 				}
 			);
@@ -86,7 +95,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		};
 
 		return {
-			label: "Switch Team",
+			label: "Switch Organization",
 			submenu: buildSubmenu()
 		};
 	};

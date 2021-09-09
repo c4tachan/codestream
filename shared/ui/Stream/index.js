@@ -27,6 +27,7 @@ import { ReviewForm } from "./ReviewForm";
 import FilterSearchPanel from "./FilterSearchPanel";
 import InlineCodemarks from "./InlineCodemarks";
 import { CreateTeamPage } from "./CreateTeamPage";
+import { CreateCompanyPage } from "./CreateCompanyPage";
 import { Tester } from "./Tester";
 import Icon from "./Icon";
 import CancelButton from "./CancelButton";
@@ -338,6 +339,7 @@ export class SimpleStream extends PureComponent {
 				{activeModal && (
 					<Modal translucent>
 						{activeModal === WebviewModals.CreateTeam && <CreateTeamPage />}
+						{activeModal === WebviewModals.CreateCompany && <CreateCompanyPage />}
 						{activeModal === WebviewModals.ReviewSettings && <ReviewSettings />}
 						{activeModal === WebviewModals.Notifications && <Notifications />}
 						{activeModal === WebviewModals.ChangeEmail && <ChangeEmail />}

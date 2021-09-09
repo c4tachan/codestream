@@ -65,6 +65,7 @@ export default {
 	"createTeam.additionalInfo": "Note that a team can own multiple repositories.",
 	"createTeam.submitButton": "Create Team",
 	"createTeam.backToInvite": "Go Back",
+	"createCompany.submitButton": "Create Organization",
 	"teamSelection.error.noPermission": "You are not a member of the selected team.",
 	"teamSelection.error.teamNotFound": "The selected team doesn't exist.",
 	"teamSelection.backToInvite": "Go Back",
@@ -100,6 +101,7 @@ export default {
 	"setPassword.setPassword": "Set Password",
 	"setPassword.help": "6+ characters",
 	"createTeam.name.label": "Team Name",
+	"createCompany.name.label": "Organization Name",
 	"oktaConfig.submitButton": "Set Host URL",
 	"pullRequest.title": "Set a title"
 };

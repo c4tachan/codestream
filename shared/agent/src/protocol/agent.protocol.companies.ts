@@ -1,5 +1,6 @@
 import { RequestType } from "vscode-languageserver-protocol";
 import { CSCompany, CSTeam } from "./api.protocol";
+import { CSStream } from "./api.protocol.models";
 
 export interface FetchCompaniesRequest {
 	mine?: boolean;
@@ -39,6 +40,7 @@ export interface CreateCompanyRequest {
 export interface CreateCompanyResponse {
 	company: CSCompany;
 	team: CSTeam;
+	streams?: CSStream[];
 }
 
 export const CreateCompanyRequestType = new RequestType<

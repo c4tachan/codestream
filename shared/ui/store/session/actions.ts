@@ -54,7 +54,7 @@ export const logout = () => async (dispatch, getState: () => CodeStreamState) =>
 };
 
 export const switchToTeam = (
-	id: string,
+	teamId: string,
 	options?: { codemarkId?: string; reviewId?: string }
 ) => async (dispatch, getState: () => CodeStreamState) => {
 	const { accessToken } = await HostApi.instance.send(GetAccessTokenRequestType, {});
@@ -71,10 +71,10 @@ export const switchToTeam = (
 			email: user.email,
 			value: accessToken,
 			url: configs.serverUrl,
-			teamId: id,
+			teamId: teamId,
 			providerAccess: context.chatProviderAccess as any
 		},
-		teamId: id,
+		teamId: teamId,
 		codemarkId: options?.codemarkId,
 		reviewId: options?.reviewId
 	});
