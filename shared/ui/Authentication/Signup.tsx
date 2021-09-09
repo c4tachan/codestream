@@ -9,7 +9,9 @@ import {
 	goToNewUserEntry,
 	goToEmailConfirmation,
 	goToTeamCreation,
-	goToOktaConfig
+	goToOktaConfig,
+	goToCompanyCreation,
+	goToLogin
 } from "../store/context/actions";
 import { TextInput } from "./TextInput";
 import { LoginResult } from "@codestream/protocols/api";
@@ -59,7 +61,16 @@ interface Props {
 export const Signup = (props: Props) => {
 	const dispatch = useDispatch();
 	const derivedState = useSelector((state: CodeStreamState) => {
+		const { serverUrl, isOnPrem, environment, isProductionCloud } = state.configs;
+		let whichServer = isOnPrem ? serverUrl : "CodeStream's cloud service";
+		if (!isProductionCloud) {
+			whichServer += ` (${environment.toUpperCase()})`;
+		}
+
 		return {
+			pluginVersion: state.pluginVersion,
+			whichServer,
+			isOnPrem,
 			supportsSSOSignIn: supportsSSOSignIn(state.configs),
 			oktaEnabled: state.configs.isOnPrem,
 			isInVSCode: state.ide.name === "VSC",
@@ -70,14 +81,10 @@ export const Signup = (props: Props) => {
 	const [email, setEmail] = useState(props.email || "");
 	const [emailValidity, setEmailValidity] = useState(true);
 	const [scmEmail, setScmEmail] = useState("");
-	const [username, setUsername] = useState("");
-	const [usernameValidity, setUsernameValidity] = useState(true);
+
 	const [password, setPassword] = useState("");
 	const [passwordValidity, setPasswordValidity] = useState(true);
-	const [fullName, setFullName] = useState("");
-	const [fullNameValidity, setFullNameValidity] = useState(true);
-	const [companyName, setCompanyName] = useState("");
-	const [companyNameValidity, setCompanyNameValidity] = useState(true);
+
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isInitializing, setIsInitializing] = useState(false);
 	const [unexpectedError, setUnexpectedError] = useState(false);
@@ -95,8 +102,7 @@ export const Signup = (props: Props) => {
 		// turn off the suggestion for now.....
 		// if (response.email) setEmail(response.email);
 		setScmEmail(response.email); // to track if they used our git-based suggestion
-		setFullName(response.name);
-		setUsername(response.username);
+
 		setBootstrapped(true);
 	};
 
@@ -124,22 +130,19 @@ export const Signup = (props: Props) => {
 
 	const onValidityChanged = useCallback((field: string, validity: boolean) => {
 		switch (field) {
-			case "email": {
-				setEmailValidity(validity);
-				break;
-			}
-			case "username":
-				setUsernameValidity(validity);
+			case "email":
+				{
+					setEmailValidity(validity);
+					break;
+				}
+
 				break;
 			case "password":
 				setPasswordValidity(validity);
 				break;
-			case "fullName":
-				setFullNameValidity(validity);
+
 				break;
-			case "companyName":
-				setCompanyNameValidity(validity);
-				break;
+
 			default: {
 			}
 		}
@@ -153,18 +156,13 @@ export const Signup = (props: Props) => {
 
 		onValidityChanged("email", isEmailValid(email));
 		onValidityChanged("password", isPasswordValid(password));
-		onValidityChanged("username", isUsernameValid(username));
-		onValidityChanged("fullName", isNotEmpty(fullName));
-		onValidityChanged("companyName", isNotEmpty(companyName));
 
 		if (
 			email === "" ||
 			!emailValidity ||
-			!usernameValidity ||
 			password === "" ||
-			!passwordValidity ||
-			fullName === "" ||
-			!fullNameValidity
+			!passwordValidity
+
 			// (!wasInvited && (companyName === "" || !companyNameValidity))
 		)
 			return;
@@ -172,11 +170,9 @@ export const Signup = (props: Props) => {
 		try {
 			const attributes = {
 				email,
-				username,
+				username: email.split("@")[0],
 				password,
-				fullName,
 				inviteCode: props.inviteCode,
-				companyName: wasInvited ? undefined : companyName,
 
 				// for auto-joining teams
 				commitHash: props.commitHash,
@@ -203,6 +199,11 @@ export const Signup = (props: Props) => {
 							registrationParams: attributes
 						})
 					);
+					break;
+				}
+				case LoginResult.NotInCompany: {
+					sendTelemetry();
+					dispatch(goToCompanyCreation({ token, email: attributes.email }));
 					break;
 				}
 				case LoginResult.NotOnTeam: {
@@ -449,53 +450,6 @@ export const Signup = (props: Props) => {
 										<FormattedMessage id="signUp.password.help" />
 									</small>
 								</div>
-								<div className="control-group">
-									<label>
-										<FormattedMessage id="signUp.username.label" />
-									</label>
-									<TextInput
-										name="username"
-										value={username}
-										onChange={setUsername}
-										onValidityChanged={onValidityChanged}
-										validate={isUsernameValid}
-									/>
-									<small className={cx("explainer", { "error-message": !usernameValidity })}>
-										<FormattedMessage id="signUp.username.help" />
-									</small>
-								</div>
-								<div className="control-group">
-									<label>
-										<FormattedMessage id="signUp.fullName.label" />
-									</label>
-									<TextInput
-										name="fullName"
-										value={fullName}
-										onChange={setFullName}
-										required
-										validate={isNotEmpty}
-										onValidityChanged={onValidityChanged}
-									/>
-									{!fullNameValidity && <small className="explainer error-message">Required</small>}
-								</div>
-								{false && !wasInvited && (
-									<div className="control-group">
-										<label>
-											<FormattedMessage id="signUp.companyName.label" />
-										</label>
-										<TextInput
-											name="companyName"
-											value={companyName}
-											onChange={setCompanyName}
-											required
-											validate={isNotEmpty}
-											onValidityChanged={onValidityChanged}
-										/>
-										{!companyNameValidity && (
-											<small className="explainer error-message">Required</small>
-										)}
-									</div>
-								)}
 
 								<div className="small-spacer" />
 
@@ -511,21 +465,35 @@ export const Signup = (props: Props) => {
 					)}
 					<div id="controls">
 						<div className="footer">
-							{props.tosType && props.tosType === "Links" && (
-								<small className="fine-print">
-									<FormattedMessage id="signUp.legal.start" />{" "}
-									<FormattedMessage id="signUp.legal.terms">
-										{text => <Link href="https://codestream.com/terms">{text}</Link>}
-									</FormattedMessage>{" "}
-									<FormattedMessage id="and" />{" "}
-									<FormattedMessage id="signUp.legal.privacyPolicy">
-										{text => <Link href="https://codestream.com/privacy">{text}</Link>}
-									</FormattedMessage>
-								</small>
-							)}
-							<Link onClick={onClickGoBack}>
-								<p>{"< Back"}</p>
-							</Link>
+							<small className="fine-print">
+								<FormattedMessage id="signUp.legal.start" />{" "}
+								<FormattedMessage id="signUp.legal.terms">
+									{text => <Link href="https://codestream.com/terms">{text}</Link>}
+								</FormattedMessage>{" "}
+								<FormattedMessage id="and" />{" "}
+								<FormattedMessage id="signUp.legal.privacyPolicy">
+									{text => <Link href="https://codestream.com/privacy">{text}</Link>}
+								</FormattedMessage>
+							</small>
+
+							<div>
+								<p>
+									Already have an account?{" "}
+									<Link
+										onClick={e => {
+											e.preventDefault();
+											dispatch(goToLogin());
+										}}
+									>
+										Sign In
+									</Link>
+								</p>
+								<p style={{ opacity: 0.5, fontSize: ".9em", textAlign: "center" }}>
+									CodeStream Version {derivedState.pluginVersion}
+									<br />
+									Connected to {derivedState.whichServer}.
+								</p>
+							</div>
 						</div>
 					</div>
 				</fieldset>

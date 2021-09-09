@@ -52,6 +52,7 @@ export enum LoginResult {
 	ExpiredToken = "TOKEN_EXPIRED",
 	TokenNotFound = "TOKEN_NOT_FOUND",
 	NotConfirmed = "NOT_CONFIRMED",
+	NotInCompany = "USER_NOT_IN_COMPANY",
 	NotOnTeam = "USER_NOT_ON_TEAM",
 	Unknown = "UNKNOWN",
 	VersionUnsupported = "VERSION_UNSUPPORTED",
@@ -102,8 +103,6 @@ export interface CSRegisterRequest {
 	email: string;
 	username: string;
 	password: string;
-	fullName?: string;
-	companyName?: string;
 	wantLink?: boolean;
 	inviteCode?: string;
 	machineId?: string;

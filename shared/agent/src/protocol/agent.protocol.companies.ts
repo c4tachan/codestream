@@ -1,5 +1,5 @@
 import { RequestType } from "vscode-languageserver-protocol";
-import { CSCompany } from "./api.protocol";
+import { CSCompany, CSTeam } from "./api.protocol";
 
 export interface FetchCompaniesRequest {
 	mine?: boolean;
@@ -31,3 +31,19 @@ export const GetCompanyRequestType = new RequestType<
 	void,
 	void
 >("codestream/company");
+
+export interface CreateCompanyRequest {
+	name: string;
+}
+
+export interface CreateCompanyResponse {
+	company: CSCompany;
+	team: CSTeam;
+}
+
+export const CreateCompanyRequestType = new RequestType<
+	CreateCompanyRequest,
+	CreateCompanyResponse,
+	void,
+	void
+>("codestream/company/create");

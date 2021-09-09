@@ -1,8 +1,13 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { connect } from "react-redux";
 import { FormattedMessage } from "react-intl";
 import { Link } from "../Stream/Link";
-import { goToSignup, goToTeamCreation, goToLogin } from "../store/context/actions";
+import {
+	goToSignup,
+	goToTeamCreation,
+	goToLogin,
+	goToCompanyCreation
+} from "../store/context/actions";
 import { TextInput } from "./TextInput";
 import Button from "../Stream/Button";
 import { DispatchProp } from "../store/common";
@@ -37,6 +42,7 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 	const inputs = useRef(array);
 	const [emailSent, setEmailSent] = useState(false);
 	const [digits, setValues] = useState(initialValues);
+	const [pastedAt, setPastedAt] = useState<number | undefined>(undefined);
 
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<LoginResult | undefined>();
@@ -51,13 +57,31 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 		[props.email]
 	);
 
+	useEffect(() => {
+		if (!pastedAt) return;
+
+		if (digits?.length) {
+			const code = digits.join("");
+			if (code.length < defaultArrayLength) {
+				return;
+			}
+
+			setIsLoading(true);
+			// make it seem a little more natural
+			setTimeout(() => {
+				onSubmit();
+			}, 1000);
+		}
+	}, [pastedAt]);
+
 	const onSubmit = async (event?: React.FormEvent) => {
 		event && event.preventDefault();
 		setError(undefined);
 		const code = digits.join("");
-		if (code.length < defaultArrayLength) return;
-
-		setIsLoading(true);
+		if (code.length < defaultArrayLength) {
+			setIsLoading(false);
+			return;
+		}
 
 		const result = await HostApi.instance.send(ConfirmRegistrationRequestType, {
 			email: props.email,
@@ -65,9 +89,15 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 		});
 
 		switch (result.status) {
+			case LoginResult.NotInCompany: {
+				HostApi.instance.track("Email Confirmed");
+				props.dispatch(goToCompanyCreation({ token: result.token, email: props.email }));
+				break;
+			}
 			case LoginResult.NotOnTeam: {
 				HostApi.instance.track("Email Confirmed");
 				props.dispatch(goToTeamCreation({ token: result.token, email: props.email }));
+
 				break;
 			}
 			case LoginResult.Success: {
@@ -158,6 +188,7 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 												if (string.length !== defaultArrayLength) return;
 
 												setValues(string.split(""));
+												setPastedAt(new Date().getTime());
 											}}
 											onChange={value => {
 												setError(undefined);

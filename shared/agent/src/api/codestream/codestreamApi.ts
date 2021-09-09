@@ -20,6 +20,8 @@ import {
 	AddMarkersResponse,
 	AgentOpenUrlRequestType,
 	ChangeDataType,
+	CreateCompanyRequest,
+	CreateCompanyRequestType,
 	DeleteMarkerRequest,
 	DeleteMarkerResponse,
 	DidChangeDataNotificationType,
@@ -1690,6 +1692,12 @@ export class CodeStreamApiProvider implements ApiProvider {
 			data: [response.company]
 		})) as CSCompany[];
 		return companies[0];
+	}
+
+	@log()
+	@lspHandler(CreateCompanyRequestType)
+	createCompany(request: CreateCompanyRequest) {
+		return this.post("/companies", request, this._token);
 	}
 
 	@lspHandler(CreateTeamTagRequestType)

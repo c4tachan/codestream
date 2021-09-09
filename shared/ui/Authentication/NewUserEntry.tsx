@@ -184,7 +184,7 @@ export const NewUserEntry = (connect(mapStateToProps) as any)((props: Props) => 
 								<p>Create a brand-new team for you and your teammates.</p>
 								<Button className="row-button no-top-margin" onClick={onClickCreateTeam}>
 									<Icon name="plus" />
-									<div className="copy">Sign Up and Create a Team</div>
+									<div className="copy">Sign Up</div>
 								</Button>
 							</div>
 							<JoinTeam />
@@ -195,7 +195,7 @@ export const NewUserEntry = (connect(mapStateToProps) as any)((props: Props) => 
 									<div className="copy">Sign In</div>
 								</Button>
 							</div>
-							<div className="border-bottom-box">
+							{/* <div className="border-bottom-box">
 								<h3>
 									<Icon name="light-bulb" /> &nbsp;What’s a CodeStream team?
 								</h3>
@@ -203,7 +203,7 @@ export const NewUserEntry = (connect(mapStateToProps) as any)((props: Props) => 
 									Each organization that uses CodeStream has teams of their own. Teams are where all
 									of their code discussions are kept, and they can only be joined by invitation.
 								</p>
-							</div>
+							</div> */}
 							<div id="controls">
 								<div className="footer">
 									<div>

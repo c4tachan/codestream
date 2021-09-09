@@ -104,6 +104,7 @@ export enum Route {
 	JoinTeam = "joinTeam",
 	EmailConfirmation = "emailConfirmation",
 	TeamCreation = "teamCreation",
+	CompanyCreation = "companyCreation",
 	ForgotPassword = "forgotPassword",
 	MustSetPassword = "MustSetPassword",
 	OktaConfig = "oktaConfig"

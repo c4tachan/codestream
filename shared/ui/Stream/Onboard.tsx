@@ -14,6 +14,7 @@ import {
 import { Checkbox } from "../src/components/Checkbox";
 import { CSText } from "../src/components/CSText";
 import { Button } from "../src/components/Button";
+import * as Legacy from "../Stream/Button";
 import { Link } from "./Link";
 import Icon from "./Icon";
 import { confirmPopup } from "./Confirm";
@@ -30,7 +31,6 @@ import { isEmailValid } from "../Authentication/Signup";
 import { OpenUrlRequestType, WebviewPanels } from "@codestream/protocols/webview";
 import { TelemetryRequestType } from "@codestream/protocols/agent";
 import { setOnboardStep, setShowFeedbackSmiley } from "../store/context/actions";
-import { getTestGroup } from "../store/context/reducer";
 
 const Step = styled.div`
 	margin: 0 auto;
@@ -192,12 +192,8 @@ export const ButtonRow = styled.div`
 `;
 
 const LinkRow = styled.div`
-	margin-top: 20px;
-	display: flex;
-	align-items: center;
-	button {
-		margin-left: auto;
-	}
+	margin-top: 10px;
+	text-align: right;
 	a {
 		text-decoration: none;
 	}
@@ -313,7 +309,68 @@ const ExpandingText = styled.div`
 
 const EMPTY_ARRAY = [];
 
+const positionDots = () => {
+	requestAnimationFrame(() => {
+		const $active = document.getElementsByClassName("active")[0];
+		if ($active) {
+			const $dots = document.getElementById("dots");
+			if ($dots) $dots.style.top = `${$active.clientHeight - 30}px`;
+		}
+	});
+};
+
 export const Onboard = React.memo(function Onboard() {
+	const dispatch = useDispatch();
+	const derivedState = useSelector((state: CodeStreamState) => {
+		const user = state.users[state.session.userId!];
+		return {
+			currentStep: state.context.onboardStep,
+			teamMembers: getTeamMembers(state),
+			totalPosts: user.totalPosts || 0,
+			isInVSCode: state.ide.name === "VSC",
+			isInJetBrains: state.ide.name === "JETBRAINS"
+		};
+	}, shallowEqual);
+
+	const { currentStep } = derivedState;
+	let NUM_STEPS = 1;
+	const [lastStep, setLastStep] = useState(currentStep);
+	const skip = () => setStep(currentStep + 1);
+	const setStep = (step: number) => {
+		if (step === NUM_STEPS) {
+			dispatch(setOnboardStep(0));
+			dispatch(closePanel());
+			return;
+		}
+
+		setLastStep(currentStep);
+		dispatch(setOnboardStep(step));
+		setTimeout(() => scrollToTop(), 250);
+	};
+
+	const scrollToTop = () => {
+		requestAnimationFrame(() => {
+			const $container = document.getElementById("scroll-container");
+			if ($container) $container.scrollTo({ top: 0, behavior: "smooth" });
+		});
+	};
+
+	return (
+		<>
+			<div id="scroll-container" className="onboarding-page">
+				<div className="standard-form">
+					<fieldset className="form-body">
+						<div className="border-bottom-box">
+							<InviteTeammates className={"active"} skip={skip} unwrap={true} />
+						</div>
+					</fieldset>
+				</div>
+			</div>
+		</>
+	);
+});
+
+export const OnboardFull = React.memo(function Onboard() {
 	const dispatch = useDispatch();
 	const derivedState = useSelector((state: CodeStreamState) => {
 		const { providers } = state;
@@ -461,16 +518,6 @@ export const Onboard = React.memo(function Onboard() {
 		});
 	};
 
-	const positionDots = () => {
-		requestAnimationFrame(() => {
-			const $active = document.getElementsByClassName("active")[0];
-			if ($active) {
-				const $dots = document.getElementById("dots");
-				if ($dots) $dots.style.top = `${$active.clientHeight - 30}px`;
-			}
-		});
-	};
-
 	const className = (step: number) => {
 		if (step === currentStep) return "active";
 		if (step === lastStep) return "last-active";
@@ -521,7 +568,7 @@ export const Onboard = React.memo(function Onboard() {
 								/>
 								<FeedbackRequests className={className(3)} skip={skip} />
 								<PullRequests className={className(4)} skip={skip} />
-								<InviteTeammates className={className(5)} skip={skip} positionDots={positionDots} />
+								<InviteTeammates className={className(5)} skip={skip} />
 							</>
 						) : (
 							<>
@@ -533,7 +580,7 @@ export const Onboard = React.memo(function Onboard() {
 									showNextMessagingStep={showNextMessagingStep}
 									setShowNextMessagingStep={setShowNextMessagingStep}
 								/>
-								<InviteTeammates className={className(4)} skip={skip} positionDots={positionDots} />
+								<InviteTeammates className={className(4)} skip={skip} />
 								<CreateCodemark className={className(CODEMARK_STEP)} skip={skip} />
 							</>
 						)}
@@ -1003,16 +1050,20 @@ const ConnectMessagingProvider = (props: {
 	);
 };
 
-const InviteTeammates = (props: { className: string; skip: Function; positionDots: Function }) => {
+export const InviteTeammates = (props: { className: string; skip: Function; unwrap?: boolean }) => {
 	const dispatch = useDispatch();
 	const derivedState = useSelector((state: CodeStreamState) => {
-		const team = state.teams[state.context.currentTeamId];
-		const dontSuggestInvitees = team.settings ? team.settings.dontSuggestInvitees || {} : {};
+		const team =
+			state.teams && state.context.currentTeamId
+				? state.teams[state.context.currentTeamId]
+				: undefined;
+		const dontSuggestInvitees =
+			team && team.settings ? team.settings.dontSuggestInvitees || {} : {};
 
 		return {
 			providers: state.providers,
 			dontSuggestInvitees,
-			teamMembers: getTeamMembers(state)
+			teamMembers: team ? getTeamMembers(state) : []
 		};
 	}, shallowEqual);
 
@@ -1046,7 +1097,7 @@ const InviteTeammates = (props: { className: string; skip: Function; positionDot
 			// allow some emails through that shouldn't be through, but
 			// won't block any that shouldn't be
 			if (email.match(/(?<!"") (?!"")(?=((?:[^"]*"){2})*[^"]*$)/)) return;
-			if (teamMembers.find(user => user.email === email)) return;
+			if (teamMembers?.find(user => user.email === email)) return;
 			if (dontSuggestInvitees[email.replace(/\./g, "*")]) return;
 			suggested.push({ email, fullName: committers[email] || email });
 		});
@@ -1073,7 +1124,7 @@ const InviteTeammates = (props: { className: string; skip: Function; positionDot
 
 	const addInvite = () => {
 		setNumInviteFields(numInviteFields + 1);
-		setTimeout(() => props.positionDots(), 250);
+		setTimeout(() => positionDots(), 250);
 	};
 
 	const onInviteEmailChange = (value, index) => {
@@ -1123,20 +1174,22 @@ const InviteTeammates = (props: { className: string; skip: Function; positionDot
 		props.skip();
 	};
 
-	return (
-		<Step className={props.className}>
+	const component = () => {
+		return (
 			<div className="body">
-				<h3>Invite your team</h3>
-				<p className="explainer">We recommend exploring CodeStream with your team</p>
-				<Dialog>
+				<h3>Invite your teammates</h3>
+				{suggestedInvitees.length === 0 && (
+					<p className="explainer">We recommend exploring CodeStream with your team</p>
+				)}
+				<div>
 					{suggestedInvitees.length > 0 && (
 						<>
-							<p className="explainer left">Suggestions below are based on your git history</p>
+							<p className="explainer left">Here are some suggestions based on your git history</p>
 							{suggestedInvitees.map(user => {
 								return (
 									<Checkbox
 										name={user.email}
-										checked={!skipSuggestedField[user.email]}
+										checked={skipSuggestedField[user.email]}
 										onChange={() => {
 											setSkipSuggestedField({
 												...skipSuggestedField,
@@ -1174,16 +1227,23 @@ const InviteTeammates = (props: { className: string; skip: Function; positionDot
 						);
 					})}
 					<LinkRow style={{ minWidth: "180px" }}>
-						<Link onClick={addInvite}>+ Add more</Link>
-						<Button isLoading={sendingInvites} onClick={sendInvites}>
-							Send invites
-						</Button>
+						<Link onClick={addInvite}>+ Add another</Link>
 					</LinkRow>
-				</Dialog>
+					<div>
+						<Legacy.default className="row-button" isLoading={sendingInvites} onClick={sendInvites}>
+							<div className="copy">Send invites</div>
+							<Icon name="chevron-right" />
+						</Legacy.default>
+					</div>
+				</div>
 				<SkipLink onClick={confirmSkip}>I'll do this later</SkipLink>
 			</div>
-		</Step>
-	);
+		);
+	};
+	if (props.unwrap) {
+		return component();
+	}
+	return <Step className={props.className}>{component()}</Step>;
 };
 
 const CreateCodemark = (props: { className: string; skip: Function }) => {

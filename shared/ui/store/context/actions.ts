@@ -227,6 +227,9 @@ export const goToEmailConfirmation = (params: {
 export const goToTeamCreation = (params = {}) =>
 	action(ContextActionsType.SetRoute, { name: Route.TeamCreation, params });
 
+export const goToCompanyCreation = (params = {}) =>
+	action(ContextActionsType.SetRoute, { name: Route.CompanyCreation, params });
+
 export const goToSetPassword = params =>
 	action(ContextActionsType.SetRoute, { name: Route.MustSetPassword, params });
 

@@ -107,10 +107,12 @@ export class SimpleStream extends PureComponent {
 	};
 
 	componentDidMount() {
-		const { isFirstPageview, onboardingTestGroup } = this.props;
+		const { isFirstPageview } = this.props;
 
-		if (isFirstPageview && (onboardingTestGroup === "tour" || onboardingTestGroup === "educate")) {
-			this.props.openPanel(WebviewPanels.Onboard);
+		if (isFirstPageview) {
+			if (!this.props.pendingProtocolHandlerUrl) {
+				this.props.openPanel(WebviewPanels.Onboard);
+			}
 		}
 		this.props.setIsFirstPageview(false);
 
@@ -237,7 +239,8 @@ export class SimpleStream extends PureComponent {
 		let { activePanel, activeModal, acceptedTOS } = this.props;
 		const { q } = this.state;
 
-		// if (!acceptedTOS) return <PresentTOS />;
+		// this will show for any old, lingering users that have not accepted as part of a new registration
+		if (!acceptedTOS) return <PresentTOS />;
 
 		if (activePanel === WebviewPanels.LandingRedirect) activePanel = WebviewPanels.Sidebar;
 

@@ -1075,6 +1075,9 @@ export class CodeStreamSession {
 	async confirmRegistration(request: ConfirmRegistrationRequest) {
 		try {
 			const response = await (this._api as CodeStreamApiProvider).confirmRegistration(request);
+			if (response.companies.length === 0) {
+				return { status: LoginResult.NotInCompany, token: response.accessToken };
+			}
 			if (response.teams.length === 0) {
 				return { status: LoginResult.NotOnTeam, token: response.accessToken };
 			}
