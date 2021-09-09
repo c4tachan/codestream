@@ -296,10 +296,10 @@ export default class Container extends React.Component {
 		if (this.state.hasError)
 			content = (
 				<div id="oops">
-					<form className="standard-form">
+					<div className="standard-form">
 						<fieldset className="form-body">
 							<div className="border-bottom-box">
-								<p>
+								<div>
 									<h3>An unexpected error has occurred. </h3>
 									<br />
 									<a onClick={this.handleClickReload}>Click here</a> to reload.
@@ -307,10 +307,10 @@ export default class Container extends React.Component {
 									<br />
 									If the problem persists please contact{" "}
 									<a href="mailto:support@codestream.com">support@codestream.com</a>
-								</p>
+								</div>
 							</div>
 						</fieldset>
-					</form>
+					</div>
 				</div>
 			);
 		else content = <Root />;
