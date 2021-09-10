@@ -19,6 +19,7 @@ import {
 } from "@codestream/protocols/agent";
 import { LoginResult } from "@codestream/protocols/api";
 import { completeSignup } from "./actions";
+import Icon from "../Stream/Icon";
 
 const errorToMessageId = {
 	[LoginResult.InvalidToken]: "confirmation.invalid",
@@ -218,8 +219,11 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 								</div>
 							</div>
 							<div className="button-group">
-								<Button className="control-button" type="submit" loading={isLoading}>
-									<FormattedMessage id="confirmation.submitButton" />
+								<Button className="row-button" type="submit" loading={isLoading}>
+									<div className="copy">
+										<FormattedMessage id="confirmation.submitButton" />
+									</div>
+									<Icon name="chevron-right" />
 								</Button>
 							</div>
 						</div>
