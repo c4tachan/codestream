@@ -1047,7 +1047,7 @@ export class CodeStreamSession {
 					return { status: LoginResult.NotOnTeam, token: response.accessToken };
 				}
 
-				this._teamId = response.teams[0].id;
+				this._teamId = response.teams.find(_ => _.isEveryoneTeam)!.id;
 				return { status: LoginResult.AlreadyConfirmed, token: response.accessToken };
 			} else {
 				return { status: LoginResult.Success };
@@ -1082,7 +1082,7 @@ export class CodeStreamSession {
 				return { status: LoginResult.NotOnTeam, token: response.accessToken };
 			}
 
-			this._teamId = response.teams[0].id;
+			this._teamId = response.teams.find(_ => _.isEveryoneTeam)!.id;
 			return { status: LoginResult.Success, token: response.accessToken };
 		} catch (error) {
 			if (error instanceof ServerError) {

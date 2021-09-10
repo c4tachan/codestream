@@ -441,90 +441,10 @@ export class CodeStreamApiProvider implements ApiProvider {
 			} as LoginFailResponse;
 		}
 
-		let pickedTeamReason;
-		let team: CSTeam | undefined;
 		const teams = response.teams;
+		const team: CSTeam = teams.find(_ => _.isEveryoneTeam)!;
 
-		/*
-		NOTE - slack/msteams login, where the user is assigned to a team by the server, is deprecated
-			github login is treated like a normal login, but without providing password
-
-		// If we are a slack/msteams team or have no overrides, then use the response teamId directly
-		if (
-			provider != null &&
-			(provider !== "codestream" ||
-				(options.team == null && (options.teamId == null || options.teamId === response.teamId)))
-		) {
-			const teamId = response.teamId;
-			team = teams.find(t => t.id === teamId);
-
-			if (team != null) {
-				pickedTeamReason = " because the team was associated with the authentication token";
-			} else {
-				// If we can't find the team, make sure to filter to only teams that match the current provider
-				teams = response.teams.filter(t => Team.isProvider(t, provider));
-			}
-		}
-		*/
-
-		if (team == null) {
-			// If there is only 1 team, use it regardless of config
-			if (teams.length === 1) {
-				options.teamId = teams[0].id;
-			} else {
-				// Sort the teams from oldest to newest
-				teams.sort((a, b) => a.createdAt - b.createdAt);
-			}
-
-			if (options.teamId == null) {
-				if (options.team) {
-					const normalizedTeamName = options.team.toLocaleUpperCase();
-					const team = teams.find(t => t.name.toLocaleUpperCase() === normalizedTeamName);
-					if (team != null) {
-						options.teamId = team.id;
-						pickedTeamReason =
-							" because the team was saved in settings (user, workspace, or folder)";
-					}
-				}
-
-				// If we still can't find a team, then just pick the first one
-				if (options.teamId == null) {
-					// Pick the oldest (first) Slack team if there is one
-					if (User.isSlack(response.user)) {
-						const team = teams.find(t => Team.isSlack(t));
-						if (team) {
-							options.teamId = team.id;
-							pickedTeamReason = " because the team was the oldest Slack team";
-						}
-					}
-
-					// Pick the oldest (first) MS Teams team if there is one
-					if (options.teamId == null && User.isMSTeams(response.user)) {
-						const team = teams.find(t => Team.isMSTeams(t));
-						if (team) {
-							options.teamId = team.id;
-							pickedTeamReason = " because the team was the oldest Microsoft Teams team";
-						}
-					}
-
-					if (options.teamId == null) {
-						options.teamId = teams[0].id;
-						pickedTeamReason = " because the team was the oldest team";
-					}
-				}
-			} else {
-				pickedTeamReason = " because the team was the last used team";
-			}
-
-			team = teams.find(t => t.id === options.teamId);
-			if (team === undefined) {
-				team = teams[0];
-				pickedTeamReason =
-					" because the specified team could not be found, defaulting to the oldest team";
-			}
-		}
-
-		Logger.log(`Using team '${team.name}' (${team.id})${pickedTeamReason || ""}`);
+		Logger.log(`Using team '${team.name}' (${team.id}) Everyone`);
 
 		this._token = response.accessToken;
 		this._pubnubSubscribeKey = response.pubnubKey;
