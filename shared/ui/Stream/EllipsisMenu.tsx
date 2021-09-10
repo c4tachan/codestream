@@ -16,7 +16,7 @@ import { confirmPopup } from "./Confirm";
 import { UpdateTeamSettingsRequestType } from "@codestream/protocols/agent";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { setUserPreference } from "./actions";
-import { AVAILABLE_PANES } from "./Sidebar";
+import { AVAILABLE_PANES, DEFAULT_PANE_SETTINGS } from "./Sidebar";
 
 interface EllipsisMenuProps {
 	menuTarget: any;
@@ -235,7 +235,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			label: "View",
 			action: "view",
 			submenu: derivedState.sidebarPaneOrder.map(id => {
-				const settings = derivedState.sidebarPanePreferences[id] || EMPTY_HASH;
+				const settings = derivedState.sidebarPanePreferences[id] || DEFAULT_PANE_SETTINGS[id];
 				return {
 					key: id,
 					label: WebviewPanelNames[id],

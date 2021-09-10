@@ -59,6 +59,16 @@ export const DragHeaderContext = React.createContext({
 	stop: (e: any, id: WebviewPanels) => {}
 });
 
+const _defaultPaneSettings = {};
+_defaultPaneSettings[WebviewPanels.OpenPullRequests] = {};
+_defaultPaneSettings[WebviewPanels.OpenReviews] = {};
+_defaultPaneSettings[WebviewPanels.CodemarksForFile] = {};
+// default this one to not show
+_defaultPaneSettings[WebviewPanels.WorkInProgress] = { removed: true };
+_defaultPaneSettings[WebviewPanels.Tasks] = {};
+_defaultPaneSettings[WebviewPanels.Team] = {};
+export const DEFAULT_PANE_SETTINGS = _defaultPaneSettings;
+
 export const AVAILABLE_PANES = [
 	WebviewPanels.OpenPullRequests,
 	WebviewPanels.OpenReviews,
@@ -92,7 +102,6 @@ export const Sidebar = React.memo(function Sidebar() {
 
 		return {
 			repos,
-			removedPanes: preferences.removedPanes || EMPTY_HASH,
 			sidebarPanes: preferences.sidebarPanes || EMPTY_HASH,
 			sidebarPaneOrder,
 			currentUserId: state.session.userId!,
@@ -182,7 +191,7 @@ export const Sidebar = React.memo(function Sidebar() {
 			const settings = sidebarPanes[id] || {};
 			return {
 				id,
-				removed: settings.removed,
+				removed: settings.removed == null ? DEFAULT_PANE_SETTINGS[id].removed : settings.removed,
 				collapsed: settings.collapsed,
 				maximized: settings.maximized,
 				size: sizes[id] || Math.abs(settings.size) || 1
