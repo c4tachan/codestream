@@ -47,6 +47,7 @@ export enum ApiErrors {
 
 export enum LoginResult {
 	Success = "SUCCESS",
+	WebMail = "EMAIL_IS_WEBMAIL",
 	InvalidCredentials = "INVALID_CREDENTIALS",
 	InvalidToken = "TOKEN_INVALID",
 	ExpiredToken = "TOKEN_EXPIRED",

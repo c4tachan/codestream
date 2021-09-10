@@ -25,6 +25,7 @@ import { Loading } from "../Container/Loading";
 import { supportsSSOSignIn } from "../store/configs/reducer";
 import { Server } from "../webview-api";
 import { PresentTOS } from "./PresentTOS";
+import { confirmPopup } from "../Stream/Confirm";
 
 const isPasswordValid = (password: string) => password.length >= 6;
 export const isEmailValid = (email: string) => {
@@ -130,25 +131,19 @@ export const Signup = (props: Props) => {
 
 	const onValidityChanged = useCallback((field: string, validity: boolean) => {
 		switch (field) {
-			case "email":
-				{
-					setEmailValidity(validity);
-					break;
-				}
-
+			case "email": {
+				setEmailValidity(validity);
 				break;
+			}
 			case "password":
 				setPasswordValidity(validity);
 				break;
-
-				break;
-
 			default: {
 			}
 		}
 	}, []);
 
-	const onSubmit = async (event: React.SyntheticEvent) => {
+	const onSubmit = async (event: React.SyntheticEvent, ignoreWebmail?: boolean) => {
 		setInviteConflict(false);
 		setUnexpectedError(false);
 		event.preventDefault();
@@ -164,8 +159,10 @@ export const Signup = (props: Props) => {
 			!passwordValidity
 
 			// (!wasInvited && (companyName === "" || !companyNameValidity))
-		)
+		) {
 			return;
+		}
+
 		setIsSubmitting(true);
 		try {
 			const attributes = {
@@ -173,11 +170,11 @@ export const Signup = (props: Props) => {
 				username: email.split("@")[0],
 				password,
 				inviteCode: props.inviteCode,
-
 				// for auto-joining teams
 				commitHash: props.commitHash,
 				repoId: props.repoId,
-				teamId: props.commitHash ? props.teamId : undefined
+				teamId: props.commitHash ? props.teamId : undefined,
+				ignoreWebmail: ignoreWebmail
 			};
 			const { status, token } = await HostApi.instance.send(RegisterUserRequestType, attributes);
 
@@ -190,6 +187,28 @@ export const Signup = (props: Props) => {
 			};
 
 			switch (status) {
+				case LoginResult.WebMail: {
+					setIsSubmitting(false);
+
+					confirmPopup({
+						title: "Work Email?",
+						message:
+							"Are you sure you don’t want to use a work email? It makes it easier for your teammates to connect with you on CodeStream.",
+						centered: true,
+						buttons: [
+							{ label: "Change Email", className: "control-button" },
+							{
+								label: "Continue",
+								action: e => {
+									onSubmit(e, true);
+								},
+								className: "secondary"
+							}
+						]
+					});
+
+					break;
+				}
 				case LoginResult.Success: {
 					sendTelemetry();
 					dispatch(
@@ -341,6 +360,7 @@ export const Signup = (props: Props) => {
 
 	return (
 		<div className="onboarding-page">
+			<div id="confirm-root" />
 			{derivedState.supportsSSOSignIn && showOauth && (
 				<form className="standard-form">
 					<fieldset className="form-body" style={{ paddingTop: 0, paddingBottom: 0 }}>

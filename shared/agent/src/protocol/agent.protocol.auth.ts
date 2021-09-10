@@ -64,7 +64,9 @@ export const OtcLoginRequestType = new RequestType<OtcLoginRequest, LoginRespons
 	"codestream/login/otc"
 );
 
-export interface RegisterUserRequest extends CSRegisterRequest {}
+export interface RegisterUserRequest extends CSRegisterRequest {
+	ignoreWebmail?: boolean;
+}
 
 export interface RegisterUserResponse {
 	status: LoginResult;

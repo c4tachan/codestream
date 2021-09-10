@@ -198,40 +198,16 @@
 		}
 	}
 
-	#modal-root.active,
-	#confirm-root.active {
+	#modal-root.active {
 		width: 100%;
 		height: 100%;
 		position: absolute;
 		z-index: 3000;
 		left: 0;
 	}
+
 	#modal-root.blanket {
 		background: rgba(0, 0, 0, 0.25);
-	}
-
-	#confirm-root {
-		width: 0;
-		height: 0;
-		position: absolute;
-		left: -999px;
-		//no-animation: 0.2s slideout;
-	}
-	#confirm-root.active {
-		// background: @app-background-color;
-		background: rgba(255, 255, 255, 0.8);
-		backdrop-filter: blur(1px);
-		.vscode-dark& {
-			background: rgba(0, 0, 0, 0.6);
-			backdrop-filter: contrast(0.5) blur(1px);
-		}
-
-		// background: @base-background-color;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		overflow: auto;
-		//no-animation: 0.2s slidein;
 	}
 
 	.stream {
@@ -1216,49 +1192,6 @@
 			}
 		}
 
-		.confirm-popup {
-			width: 100%;
-			height: 100%;
-			padding: 0 20px;
-			.centered {
-				text-align: center;
-			}
-			.confirm-popup-body {
-				margin: 20px auto;
-				padding: 20px;
-				white-space: pre-wrap;
-				max-width: 340px;
-				background: @base-background-color;
-				border: 1px solid @base-border-color;
-				box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-				.vscode-dark& {
-					box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
-				}
-				&.wide {
-					max-width: 500px;
-				}
-				.confirm-title {
-					font-size: 24px;
-					text-align: center;
-					padding-bottom: 20px;
-				}
-				.confirm-message {
-					font-size: 16px;
-					padding-bottom: 10px;
-				}
-				.button-group {
-					// padding: 0px 10px 10px 56px;
-					margin-bottom: 5px;
-					button {
-						// this crazy escape syntax is required due to a bug in LESS
-						width: calc(~"50% - 5px");
-					}
-					button:first-child {
-						margin-right: 10px;
-					}
-				}
-			}
-		}
 		.menu-popup {
 			// height: 500px;
 			position: fixed;
