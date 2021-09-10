@@ -432,6 +432,16 @@ export class CodeStreamApiProvider implements ApiProvider {
 		}
 
 		// 💩see above
+		if (response.companies.length === 0) {
+			// save the accessToken for the call to create a team
+			this._token = response.accessToken;
+			throw {
+				error: LoginResult.NotInCompany,
+				extra: { token: response.accessToken, email: response.user.email, userId: response.user.id }
+			} as LoginFailResponse;
+		}
+
+		// 💩see above
 		if (response.teams.length === 0) {
 			// save the accessToken for the call to create a team
 			this._token = response.accessToken;

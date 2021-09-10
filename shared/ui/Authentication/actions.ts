@@ -22,7 +22,8 @@ import {
 	goToLogin,
 	goToSetPassword,
 	setCurrentCodemark,
-	setCurrentReview
+	setCurrentReview,
+	goToCompanyCreation
 } from "../store/context/actions";
 import { fetchCodemarks } from "../Stream/actions";
 import { getCodemark } from "../store/codemarks/reducer";
@@ -173,6 +174,16 @@ export const authenticate = (params: PasswordLoginParams | TokenLoginRequest) =>
 				return dispatch(setMaintenanceMode(true, params));
 			case LoginResult.MustSetPassword:
 				return dispatch(goToSetPassword({ email: (params as PasswordLoginParams).email }));
+			case LoginResult.NotInCompany:
+				return dispatch(
+					goToCompanyCreation({
+						loggedIn: true,
+						// since we're sure the error is NotInCompany, params below must be email/password because token
+						// login is for resuming previous sessions and this error means you haven't ever fully signed into the extension
+						email: (params as PasswordLoginParams).email,
+						token: response.extra.token
+					})
+				);
 			case LoginResult.NotOnTeam:
 				return dispatch(
 					goToTeamCreation({
@@ -291,6 +302,15 @@ export const validateSignup = (provider: string, authInfo?: SSOAuthInfo) => asyn
 				return dispatch(goToLogin());
 			case LoginResult.AlreadySignedIn:
 				return dispatch(bootstrap());
+			case LoginResult.NotInCompany:
+				HostApi.instance.track("Account Created", { email: response.extra.email });
+				return dispatch(
+					goToCompanyCreation({
+						email: response.extra && response.extra.email,
+						token: response.extra && response.extra.token,
+						provider
+					})
+				);
 			case LoginResult.NotOnTeam:
 				HostApi.instance.track("Account Created", { email: response.extra.email });
 				return dispatch(
