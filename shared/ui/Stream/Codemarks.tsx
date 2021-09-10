@@ -167,12 +167,10 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 				}
 			}),
 			HostApi.instance.on(DidChangeDataNotificationType, async (e: any) => {
-				if (
-					e.type === ChangeDataType.Commits && e.data && e.data.type === "change"
-				) {
+				if (e.type === ChangeDataType.Commits && e.data && e.data.type === "change") {
 					this.onFileChanged(false, this.onFileChangedError, true);
 				}
-			}),
+			})
 		);
 
 		this.onFileChanged(true, this.onFileChangedError);
@@ -223,7 +221,8 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 		}
 
 		let scmInfo = this.props.scmInfo;
-		if (!scmInfo ||
+		if (
+			!scmInfo ||
 			(scmInfo.uri !== textEditorUri && codemarkDomain !== CodemarkDomainType.Team) ||
 			checkBranchUpdate
 		) {
@@ -590,14 +589,6 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 				icon: <Icon name="repo" />,
 				action: () => this.switchDomain(CodemarkDomainType.Repo),
 				checked: codemarkDomain === CodemarkDomainType.Repo
-			},
-			{
-				label: "All Codemarks",
-				subtle: this.props.teamName,
-				key: "team",
-				icon: <Icon name="team" />,
-				action: () => this.switchDomain(CodemarkDomainType.Team),
-				checked: codemarkDomain === CodemarkDomainType.Team
 			}
 		];
 
