@@ -116,6 +116,7 @@ export const loginApiErrorMappings: { [k: string]: LoginResult } = {
 	"USRC-1005": LoginResult.InvalidToken,
 	"USRC-1002": LoginResult.InvalidToken,
 	"USRC-1006": LoginResult.AlreadyConfirmed,
+	"USRC-1026": LoginResult.WebMail,
 	// "RAPI-1001": "missing parameter" // shouldn't ever happen
 	"RAPI-1003": LoginResult.InvalidToken,
 	"USRC-1012": LoginResult.NotOnTeam,

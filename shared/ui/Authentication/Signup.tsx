@@ -93,6 +93,7 @@ export const Signup = (props: Props) => {
 	const [bootstrapped, setBootstrapped] = useState(true);
 	const [limitAuthentication, setLimitAuthentication] = useState(false);
 	const [authenticationProviders, setAuthenticationProviders] = useState({});
+	const [checkForWebmail, setCheckForWebmail] = useState(true);
 
 	const wasInvited = props.inviteCode !== undefined;
 
@@ -111,13 +112,11 @@ export const Signup = (props: Props) => {
 		setIsInitializing(true);
 		try {
 			const url = `/no-auth/teams/${teamId}/auth-settings`;
-			// console.warn("Request: ", url);
 			const response = await Server.get<TeamAuthSettings>(url);
 			if (response && response.limitAuthentication) {
 				setLimitAuthentication(true);
 				setAuthenticationProviders(response.authenticationProviders);
 			}
-			// console.warn("Response: ", response);
 		} catch (e) {
 			console.warn("Error in getTeamAuthInfo: ", e);
 		}
@@ -143,7 +142,7 @@ export const Signup = (props: Props) => {
 		}
 	}, []);
 
-	const onSubmit = async (event: React.SyntheticEvent, ignoreWebmail?: boolean) => {
+	const onSubmit = async (event: React.SyntheticEvent, checkForWebmailArg?: boolean) => {
 		setInviteConflict(false);
 		setUnexpectedError(false);
 		event.preventDefault();
@@ -170,11 +169,12 @@ export const Signup = (props: Props) => {
 				username: email.split("@")[0],
 				password,
 				inviteCode: props.inviteCode,
+				checkForWebmail: checkForWebmailArg,
+
 				// for auto-joining teams
 				commitHash: props.commitHash,
 				repoId: props.repoId,
-				teamId: props.commitHash ? props.teamId : undefined,
-				ignoreWebmail: ignoreWebmail
+				teamId: props.commitHash ? props.teamId : undefined
 			};
 			const { status, token } = await HostApi.instance.send(RegisterUserRequestType, attributes);
 
@@ -189,6 +189,7 @@ export const Signup = (props: Props) => {
 			switch (status) {
 				case LoginResult.WebMail: {
 					setIsSubmitting(false);
+					setCheckForWebmail(false);
 
 					confirmPopup({
 						title: "Work Email?",
@@ -200,7 +201,7 @@ export const Signup = (props: Props) => {
 							{
 								label: "Continue",
 								action: e => {
-									onSubmit(e, true);
+									onSubmit(e, false);
 								},
 								className: "secondary"
 							}
@@ -258,22 +259,22 @@ export const Signup = (props: Props) => {
 		}
 	};
 
-	const onClickGoBack = useCallback(
-		(event: React.SyntheticEvent) => {
-			event.preventDefault();
-			switch (props.type) {
-				case SignupType.JoinTeam: {
-					// simplified the first panel to include joining a team
-					// return dispatch(goToJoinTeam());
-					return dispatch(goToNewUserEntry());
-				}
-				case SignupType.CreateTeam:
-				default:
-					return dispatch(goToNewUserEntry());
-			}
-		},
-		[props.type]
-	);
+	// const onClickGoBack = useCallback(
+	// 	(event: React.SyntheticEvent) => {
+	// 		event.preventDefault();
+	// 		switch (props.type) {
+	// 			case SignupType.JoinTeam: {
+	// 				// simplified the first panel to include joining a team
+	// 				// return dispatch(goToJoinTeam());
+	// 				return dispatch(goToNewUserEntry());
+	// 			}
+	// 			case SignupType.CreateTeam:
+	// 			default:
+	// 				return dispatch(goToNewUserEntry());
+	// 		}
+	// 	},
+	// 	[props.type]
+	// );
 
 	const buildSignupInfo = () => {
 		const info: any = { fronSignup: true };
@@ -404,7 +405,7 @@ export const Signup = (props: Props) => {
 					</fieldset>
 				</form>
 			)}
-			<form className="standard-form" onSubmit={onSubmit}>
+			<form className="standard-form" onSubmit={e => onSubmit(e, checkForWebmail)}>
 				<fieldset className="form-body" style={{ paddingTop: 0, paddingBottom: 0 }}>
 					{(!limitAuthentication || authenticationProviders["email"]) && (
 						<div className="border-bottom-box">
@@ -473,7 +474,11 @@ export const Signup = (props: Props) => {
 
 								<div className="small-spacer" />
 
-								<Button className="row-button" onClick={onSubmit} loading={isSubmitting}>
+								<Button
+									className="row-button"
+									onClick={e => onSubmit(e, checkForWebmail)}
+									loading={isSubmitting}
+								>
 									<Icon name="codestream" />
 									<div className="copy">
 										<FormattedMessage id="signUp.submitButton" />

@@ -65,7 +65,7 @@ export const OtcLoginRequestType = new RequestType<OtcLoginRequest, LoginRespons
 );
 
 export interface RegisterUserRequest extends CSRegisterRequest {
-	ignoreWebmail?: boolean;
+	checkForWebmail?: boolean;
 }
 
 export interface RegisterUserResponse {
