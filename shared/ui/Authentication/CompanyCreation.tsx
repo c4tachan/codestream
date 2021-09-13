@@ -20,13 +20,20 @@ import {
 	JoinCompanyResponse
 } from "@codestream/protocols/agent";
 import { changeRegistrationEmail } from "../store/session/actions";
-import { CSEligibleJoinCompany } from "@codestream/protocols/api";
+import { CSCompany, CSEligibleJoinCompany } from "@codestream/protocols/api";
 
 export const CheckboxRow = styled.div`
 	padding: 5px 0 5px 0;
 `;
 
 const isTeamNameValid = (name: string) => name.length > 0;
+
+interface EnhancedCSCompany {
+	id: string;
+	memberCount?: number;
+	name: string;
+	_type: "Domain" | "Invite Detected";
+}
 
 export function CompanyCreation(props: {
 	userId?: string;
@@ -36,6 +43,7 @@ export function CompanyCreation(props: {
 	provider?: string;
 	isWebmail?: string;
 	onComplete?: Function;
+	companies?: CSCompany[];
 	eligibleJoinCompanies?: CSEligibleJoinCompany[];
 }) {
 	const dispatch = useDispatch();
@@ -45,7 +53,7 @@ export function CompanyCreation(props: {
 		dispatch(changeRegistrationEmail(props.userId!));
 	}, []);
 
-	const [organizations, setOrganizations] = React.useState<CSEligibleJoinCompany[]>([]);
+	const [organizations, setOrganizations] = React.useState<EnhancedCSCompany[]>([]);
 	const [isLoading, setIsLoading] = React.useState(false);
 	const [isLoadingJoinTeam, setIsLoadingJoinTeam] = React.useState(false);
 	const [step, setStep] = React.useState<number>(0);
@@ -79,10 +87,25 @@ export function CompanyCreation(props: {
 	// });
 
 	useDidMount(() => {
-		if (props.eligibleJoinCompanies) {
+		if (props.eligibleJoinCompanies || props.companies) {
 			setIsLoading(true);
+			let obj = {};
+			if (props.eligibleJoinCompanies) {
+				props.eligibleJoinCompanies.forEach(_ => {
+					obj[_.id] = { ..._, _type: "Domain" };
+				});
+			}
+			if (props.companies) {
+				props.companies.forEach(_ => {
+					obj[_.id] = { ..._, _type: "Invite Detected" };
+				});
+			}
 
-			setOrganizations(props.eligibleJoinCompanies!);
+			setOrganizations(
+				Object.keys(obj).map(_ => {
+					return obj[_];
+				}) as EnhancedCSCompany[]
+			);
 
 			setIsLoading(false);
 		}
@@ -135,7 +158,7 @@ export function CompanyCreation(props: {
 		}
 	};
 
-	const onClickJoinOrganization = async (organization: any) => {
+	const onClickJoinOrganization = async (organization: EnhancedCSCompany) => {
 		setIsLoadingJoinTeam(true);
 
 		try {
@@ -144,7 +167,7 @@ export function CompanyCreation(props: {
 			})) as JoinCompanyResponse;
 
 			HostApi.instance.track("Joined Organization", {
-				Availability: ""
+				Availability: organization._type
 			});
 			dispatch(
 				completeSignup(props.email!, props.token!, result.team.id, {
@@ -155,8 +178,6 @@ export function CompanyCreation(props: {
 		} catch (ex) {
 			// TODO: communicate error
 			dispatch(goToLogin());
-		} finally {
-			setIsLoadingJoinTeam(false);
 		}
 	};
 

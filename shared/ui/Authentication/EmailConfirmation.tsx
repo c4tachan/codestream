@@ -94,11 +94,9 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 				HostApi.instance.track("Email Confirmed");
 				props.dispatch(
 					goToCompanyCreation({
+						...result,
 						userId: result.user?.id,
-						token: result.token,
-						email: props.email,
-						eligibleJoinCompanies: result.eligibleJoinCompanies,
-						isWebmail: result.isWebmail
+						email: props.email
 					})
 				);
 				break;

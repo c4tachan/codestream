@@ -44,6 +44,9 @@ export const JoinTeam = (props: React.PropsWithChildren<JoinTeamProps>) => {
 				"Reg Path": "Join Team",
 				"TOS Type": tosType
 			});
+			// HostApi.instance.track("Joined Organization", {
+			// 	Availability: ""
+			// });
 			dispatch(goToSignup({ ...info, inviteCode: code, type: SignupType.JoinTeam, tosType }));
 		} else {
 			setIsLoading(false);

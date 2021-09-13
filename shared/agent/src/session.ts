@@ -1083,6 +1083,7 @@ export class CodeStreamSession {
 				},
 				status: LoginResult.Unknown,
 				token: response.accessToken,
+				companies: response.companies,
 				eligibleJoinCompanies: response.eligibleJoinCompanies,
 				isWebmail: response.isWebmail
 			};

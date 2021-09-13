@@ -10,6 +10,7 @@ import {
 	CSSetPasswordResponse,
 	LoginResult
 } from "./api.protocol";
+import { CSCompany } from "./api.protocol.models";
 
 export function isLoginFailResponse(
 	response: LoginSuccessResponse | LoginFailResponse
@@ -91,6 +92,7 @@ export interface ConfirmRegistrationResponse {
 	token?: string;
 	eligibleJoinCompanies?: CSEligibleJoinCompany[];
 	isWebmail?: boolean;
+	companies?: CSCompany[];
 }
 
 export const ConfirmRegistrationRequestType = new RequestType<
