@@ -107,6 +107,7 @@ export interface CSLoginResponse {
 	features?: CSApiFeatures;
 	environmentInfo: CodeStreamEnvironmentInfo;
 	eligibleJoinCompanies?: CSEligibleJoinCompany[];
+	isWebmail?: boolean;
 }
 
 export interface CSRegisterRequest {

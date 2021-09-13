@@ -90,6 +90,7 @@ export interface ConfirmRegistrationResponse {
 	status: LoginResult;
 	token?: string;
 	eligibleJoinCompanies?: CSEligibleJoinCompany[];
+	isWebmail?: boolean;
 }
 
 export const ConfirmRegistrationRequestType = new RequestType<

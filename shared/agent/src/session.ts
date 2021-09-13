@@ -44,6 +44,7 @@ import {
 	CodeStreamEnvironmentInfo,
 	ConfirmRegistrationRequest,
 	ConfirmRegistrationRequestType,
+	ConfirmRegistrationResponse,
 	ConnectionCode,
 	ConnectionStatus,
 	DidChangeApiVersionCompatibilityNotificationType,
@@ -1076,36 +1077,27 @@ export class CodeStreamSession {
 	async confirmRegistration(request: ConfirmRegistrationRequest) {
 		try {
 			const response = await (this._api as CodeStreamApiProvider).confirmRegistration(request);
-			if (response.companies.length === 0) {
-				return {
-					user: {
-						id: response.user.id
-					},
-					status: LoginResult.NotInCompany,
-					token: response.accessToken,
-					eligibleJoinCompanies: response.eligibleJoinCompanies
-				};
-			}
-			if (response.teams.length === 0) {
-				return {
-					user: {
-						id: response.user.id
-					},
-					status: LoginResult.NotOnTeam,
-					token: response.accessToken,
-					eligibleJoinCompanies: response.eligibleJoinCompanies
-				};
-			}
-
-			this._teamId = response.teams.find(_ => _.isEveryoneTeam)!.id;
-			return {
+			const result: ConfirmRegistrationResponse = {
 				user: {
 					id: response.user.id
 				},
-				status: LoginResult.Success,
+				status: LoginResult.Unknown,
 				token: response.accessToken,
-				eligibleJoinCompanies: response.eligibleJoinCompanies
+				eligibleJoinCompanies: response.eligibleJoinCompanies,
+				isWebmail: response.isWebmail
 			};
+			if (response.companies.length === 0) {
+				result.status = LoginResult.NotInCompany;
+				return result;
+			}
+			if (response.teams.length === 0) {
+				result.status = LoginResult.NotOnTeam;
+				return result;
+			}
+
+			this._teamId = response.teams.find(_ => _.isEveryoneTeam)!.id;
+			result.status = LoginResult.Success;
+			return result;
 		} catch (error) {
 			if (error instanceof ServerError) {
 				if (error.statusCode !== undefined && error.statusCode >= 400 && error.statusCode < 500) {

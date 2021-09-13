@@ -49,7 +49,8 @@ export function CompanyCreation(props: {
 	const [isLoading, setIsLoading] = React.useState(false);
 	const [isLoadingJoinTeam, setIsLoadingJoinTeam] = React.useState(false);
 	const [step, setStep] = React.useState<number>(0);
-	const initialCompanyName = props.email ? props.email.split("@")[1].split(".")[0] : "";
+	const initialCompanyName =
+		props.email && !props.isWebmail ? props.email.split("@")[1].split(".")[0] : "";
 	const [organizationSettings, setOrganizationSettings] = React.useState<{
 		companyName?: string;
 		allowDomainJoining?: boolean;

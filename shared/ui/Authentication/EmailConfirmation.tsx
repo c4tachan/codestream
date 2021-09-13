@@ -97,8 +97,8 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 						userId: result.user?.id,
 						token: result.token,
 						email: props.email,
-						eligibleJoinCompanies: result.eligibleJoinCompanies
-						// isWebmail: result.isWebmail
+						eligibleJoinCompanies: result.eligibleJoinCompanies,
+						isWebmail: result.isWebmail
 					})
 				);
 				break;
