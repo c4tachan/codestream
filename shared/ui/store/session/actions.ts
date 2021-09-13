@@ -9,12 +9,14 @@ import {
 	TokenLoginRequestType,
 	GetAccessTokenRequestType,
 	isLoginFailResponse,
-	TokenLoginRequest
+	TokenLoginRequest,
+	DeleteMeUserRequestType
 } from "@codestream/protocols/agent";
 import { CodeStreamState } from "../index";
 import { CSMe } from "@codestream/protocols/api";
 import { onLogin, PasswordLoginParams } from "@codestream/webview/Authentication/actions";
 import { logError } from "@codestream/webview/logger";
+import { goToSignup } from "../context/actions";
 // import { DisconnectFromIDEProviderRequestType } from "../../ipc/host.protocol";
 
 export { reset };
@@ -85,4 +87,12 @@ export const switchToTeam = (
 	}
 
 	return dispatch(onLogin(response));
+};
+
+export const changeRegistrationEmail = (userId: string) => async (
+	dispatch,
+	getState: () => CodeStreamState
+) => {
+	await HostApi.instance.send(DeleteMeUserRequestType, { userId: userId });
+	return dispatch(goToSignup({}));
 };

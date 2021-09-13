@@ -3,8 +3,8 @@ import React, { useState, useCallback } from "react";
 import Button from "../Stream/Button";
 import { Link } from "../Stream/Link";
 import { FormattedMessage } from "react-intl";
-import { goToLogin, goToSignup } from "../store/context/actions";
-import { useDispatch, useSelector } from "react-redux";
+import { goToLogin } from "../store/context/actions";
+import { useDispatch } from "react-redux";
 import { Separator } from "./Separator";
 import Icon from "../Stream/Icon";
 import { useDidMount } from "../utilities/hooks";
@@ -14,7 +14,13 @@ import { TextInput } from "./TextInput";
 import { HostApi } from "..";
 import { completeSignup } from "./actions";
 import { Checkbox } from "../src/components/Checkbox";
-import { CreateCompanyRequestType } from "@codestream/protocols/agent";
+import {
+	CreateCompanyRequestType,
+	JoinCompanyRequestType,
+	JoinCompanyResponse
+} from "@codestream/protocols/agent";
+import { changeRegistrationEmail } from "../store/session/actions";
+import { CSEligibleJoinCompany } from "@codestream/protocols/api";
 
 export const CheckboxRow = styled.div`
 	padding: 5px 0 5px 0;
@@ -23,28 +29,35 @@ export const CheckboxRow = styled.div`
 const isTeamNameValid = (name: string) => name.length > 0;
 
 export function CompanyCreation(props: {
+	userId?: string;
 	email?: string;
 	token?: string;
 	domain?: string;
 	provider?: string;
+	isWebmail?: string;
 	onComplete?: Function;
+	eligibleJoinCompanies?: CSEligibleJoinCompany[];
 }) {
 	const dispatch = useDispatch();
 
-	const onClickGoBack = useCallback((event: React.FormEvent) => {
+	const onClickTryAnother = useCallback(async (event: React.FormEvent) => {
 		event.preventDefault();
-		dispatch(goToSignup({}));
+		dispatch(changeRegistrationEmail(props.userId!));
 	}, []);
 
-	const [organizations, setOrganizations] = React.useState<
-		{ name: string; id: string; memberCount: number }[]
-	>([]);
+	const [organizations, setOrganizations] = React.useState<CSEligibleJoinCompany[]>([]);
 	const [isLoading, setIsLoading] = React.useState(false);
+	const [isLoadingJoinTeam, setIsLoadingJoinTeam] = React.useState(false);
 	const [step, setStep] = React.useState<number>(0);
+	const initialCompanyName = props.email ? props.email.split("@")[1].split(".")[0] : "";
 	const [organizationSettings, setOrganizationSettings] = React.useState<{
 		companyName?: string;
-		allowDomainBaseJoining?: boolean;
-	}>({});
+		allowDomainJoining?: boolean;
+	}>({
+		companyName: initialCompanyName
+			? initialCompanyName.charAt(0).toUpperCase() + initialCompanyName.slice(1)
+			: ""
+	});
 	const [teamNameValidity, setTeamNameValidity] = useState(true);
 
 	const onValidityChanged = useCallback((field: string, validity: boolean) => {
@@ -65,17 +78,13 @@ export function CompanyCreation(props: {
 	// });
 
 	useDidMount(() => {
-		setIsLoading(true);
-		setTimeout(() => {
-			setOrganizations([
-				{
-					id: "1",
-					name: "YourCompany",
-					memberCount: 42
-				}
-			]);
+		if (props.eligibleJoinCompanies) {
+			setIsLoading(true);
+
+			setOrganizations(props.eligibleJoinCompanies!);
+
 			setIsLoading(false);
-		}, 1200);
+		}
 	});
 
 	const onClickBeginCreateOrganization = () => {
@@ -84,6 +93,10 @@ export function CompanyCreation(props: {
 		});
 		setStep(1);
 	};
+
+	const domain = React.useMemo(() => {
+		return props.email?.split("@")[1].toLowerCase();
+	}, [props.email]);
 
 	const onClickCreateOrganization = async event => {
 		event.preventDefault();
@@ -95,11 +108,17 @@ export function CompanyCreation(props: {
 			setIsLoading(true);
 			try {
 				const { team, company } = await HostApi.instance.send(CreateCompanyRequestType, {
-					name: organizationSettings.companyName!
+					name: organizationSettings.companyName!,
+					domainJoining:
+						organizationSettings?.allowDomainJoining == true && domain ? [domain] : undefined
 				});
 				HostApi.instance.track("New Organization Created", {
-					"Domain Joining": organizationSettings?.allowDomainBaseJoining ? "" : "",
-					"Code Host Joining": ""
+					"Domain Joining": props.isWebmail
+						? "Not Available"
+						: organizationSettings?.allowDomainJoining
+						? "On"
+						: "Off"
+					// "Code Host Joining": ""
 				});
 
 				dispatch(
@@ -115,12 +134,29 @@ export function CompanyCreation(props: {
 		}
 	};
 
-	const onClickJoinOrganization = (organization: any) => {
-		console.warn(organization.id);
+	const onClickJoinOrganization = async (organization: any) => {
+		setIsLoadingJoinTeam(true);
 
-		HostApi.instance.track("Joined Organization", {
-			Availability: ""
-		});
+		try {
+			const result = (await HostApi.instance.send(JoinCompanyRequestType, {
+				companyId: organization.id
+			})) as JoinCompanyResponse;
+
+			HostApi.instance.track("Joined Organization", {
+				Availability: ""
+			});
+			dispatch(
+				completeSignup(props.email!, props.token!, result.team.id, {
+					createdTeam: true,
+					provider: props.provider
+				})
+			);
+		} catch (ex) {
+			// TODO: communicate error
+			dispatch(goToLogin());
+		} finally {
+			setIsLoadingJoinTeam(false);
+		}
 	};
 
 	return (
@@ -183,6 +219,7 @@ export function CompanyCreation(props: {
 																<Button
 																	onClick={e => onClickJoinOrganization(_)}
 																	className="control-button"
+																	loading={isLoadingJoinTeam}
 																>
 																	<div className="copy">
 																		<b>Join</b>
@@ -197,7 +234,7 @@ export function CompanyCreation(props: {
 														<div>
 															We didn't find any organizations for you to join
 															<br />
-															<Link onClick={onClickGoBack}>
+															<Link onClick={onClickTryAnother}>
 																Try using a different email address
 															</Link>
 															<br /> <br />
@@ -213,12 +250,6 @@ export function CompanyCreation(props: {
 										)}
 									</div>
 								</div>
-							</div>
-
-							<div className="footer">
-								<Link onClick={onClickGoBack}>
-									<p>{"< Back"}</p>
-								</Link>
 							</div>
 						</fieldset>
 					</div>
@@ -254,19 +285,22 @@ export function CompanyCreation(props: {
 
 									<br />
 									<br />
-									<CheckboxRow>
-										<Checkbox
-											name="allowDomainBaseJoining"
-											onChange={(value: boolean) => {
-												setOrganizationSettings({
-													...organizationSettings,
-													allowDomainBaseJoining: value
-												});
-											}}
-										>
-											Let anyone with an <b>acme.com</b> email address join this organization
-										</Checkbox>
-									</CheckboxRow>
+									{domain && !props.isWebmail && (
+										<CheckboxRow>
+											<Checkbox
+												name="allowDomainBaseJoining"
+												onChange={(value: boolean) => {
+													setOrganizationSettings({
+														...organizationSettings,
+														allowDomainJoining: value
+													});
+												}}
+											>
+												Let anyone with the <b>{domain}</b> email address join this organization
+											</Checkbox>
+										</CheckboxRow>
+									)}
+
 									{/* <CheckboxRow>
 										<Checkbox name="somethingElse" onChange={(value: boolean) => {}}>
 											Let anyone in the following GitHub organization join

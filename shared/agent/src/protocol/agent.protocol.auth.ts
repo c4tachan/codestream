@@ -2,6 +2,7 @@ import { RequestType } from "vscode-languageserver-protocol";
 import { AccessToken, AgentState } from "./agent.protocol";
 import {
 	CSConfirmRegistrationRequest,
+	CSEligibleJoinCompany,
 	CSGetInviteInfoRequest,
 	CSGetInviteInfoResponse,
 	CSLoginResponse,
@@ -83,8 +84,12 @@ export const RegisterUserRequestType = new RequestType<
 export interface ConfirmRegistrationRequest extends CSConfirmRegistrationRequest {}
 
 export interface ConfirmRegistrationResponse {
+	user?: {
+		id: string;
+	};
 	status: LoginResult;
 	token?: string;
+	eligibleJoinCompanies?: CSEligibleJoinCompany[];
 }
 
 export const ConfirmRegistrationRequestType = new RequestType<

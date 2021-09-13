@@ -1077,18 +1077,41 @@ export class CodeStreamSession {
 		try {
 			const response = await (this._api as CodeStreamApiProvider).confirmRegistration(request);
 			if (response.companies.length === 0) {
-				return { status: LoginResult.NotInCompany, token: response.accessToken };
+				return {
+					user: {
+						id: response.user.id
+					},
+					status: LoginResult.NotInCompany,
+					token: response.accessToken,
+					eligibleJoinCompanies: response.eligibleJoinCompanies
+				};
 			}
 			if (response.teams.length === 0) {
-				return { status: LoginResult.NotOnTeam, token: response.accessToken };
+				return {
+					user: {
+						id: response.user.id
+					},
+					status: LoginResult.NotOnTeam,
+					token: response.accessToken,
+					eligibleJoinCompanies: response.eligibleJoinCompanies
+				};
 			}
 
 			this._teamId = response.teams.find(_ => _.isEveryoneTeam)!.id;
-			return { status: LoginResult.Success, token: response.accessToken };
+			return {
+				user: {
+					id: response.user.id
+				},
+				status: LoginResult.Success,
+				token: response.accessToken,
+				eligibleJoinCompanies: response.eligibleJoinCompanies
+			};
 		} catch (error) {
 			if (error instanceof ServerError) {
 				if (error.statusCode !== undefined && error.statusCode >= 400 && error.statusCode < 500) {
-					return { status: loginApiErrorMappings[error.info.code] || LoginResult.Unknown };
+					return {
+						status: loginApiErrorMappings[error.info.code] || LoginResult.Unknown
+					};
 				}
 			}
 

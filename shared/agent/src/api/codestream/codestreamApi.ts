@@ -24,7 +24,13 @@ import {
 	CreateCompanyRequestType,
 	DeleteMarkerRequest,
 	DeleteMarkerResponse,
+	DeleteMeUserRequest,
+	DeleteMeUserRequestType,
+	DeleteMeUserResponse,
 	DidChangeDataNotificationType,
+	JoinCompanyRequest,
+	JoinCompanyRequestType,
+	JoinCompanyResponse,
 	MarkItemReadRequest,
 	ReportingMessageType,
 	RepoScmStatus,
@@ -1688,6 +1694,12 @@ export class CodeStreamApiProvider implements ApiProvider {
 		return this.get<CSGetCompanyResponse>(`/companies/${request.companyId}`, this._token);
 	}
 
+	@lspHandler(JoinCompanyRequestType)
+	@log()
+	async joinCompany(request: JoinCompanyRequest): Promise<JoinCompanyResponse> {
+		return this.put(`/companies/join/${request.companyId}`, {}, this._token);
+	}
+
 	async setCompanyTestGroups(
 		companyId: string,
 		request: { [key: string]: string }
@@ -1810,6 +1822,12 @@ export class CodeStreamApiProvider implements ApiProvider {
 	@log()
 	deleteUser(request: DeleteUserRequest) {
 		return this.delete<DeleteUserResponse>(`/users/${request.userId}`, this._token);
+	}
+
+	@lspHandler(DeleteMeUserRequestType)
+	@log()
+	deleteMeUser(request: DeleteMeUserRequest) {
+		return this.delete<DeleteMeUserResponse>(`/users/${request.userId}`, this._token);
 	}
 
 	@log()

@@ -92,7 +92,15 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 		switch (result.status) {
 			case LoginResult.NotInCompany: {
 				HostApi.instance.track("Email Confirmed");
-				props.dispatch(goToCompanyCreation({ token: result.token, email: props.email }));
+				props.dispatch(
+					goToCompanyCreation({
+						userId: result.user?.id,
+						token: result.token,
+						email: props.email,
+						eligibleJoinCompanies: result.eligibleJoinCompanies
+						// isWebmail: result.isWebmail
+					})
+				);
 				break;
 			}
 			case LoginResult.NotOnTeam: {

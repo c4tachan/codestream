@@ -79,6 +79,14 @@ export interface CSLoginRequest {
 	token?: string;
 }
 
+export interface CSEligibleJoinCompany {
+	codeHostJoining?: string[];
+	domainJoining?: string[];
+	id: string;
+	memberCount?: number;
+	name: string;
+}
+
 export interface CSLoginResponse {
 	user: CSMe;
 	accessToken: string;
@@ -98,6 +106,7 @@ export interface CSLoginResponse {
 	capabilities?: CSApiCapabilities;
 	features?: CSApiFeatures;
 	environmentInfo: CodeStreamEnvironmentInfo;
+	eligibleJoinCompanies?: CSEligibleJoinCompany[];
 }
 
 export interface CSRegisterRequest {

@@ -92,6 +92,19 @@ export const DeleteUserRequestType = new RequestType<
 	void
 >("codestream/user/delete");
 
+export interface DeleteMeUserRequest {
+	userId: string;
+}
+
+export interface DeleteMeUserResponse {}
+
+export const DeleteMeUserRequestType = new RequestType<
+	DeleteMeUserRequest,
+	DeleteMeUserResponse,
+	void,
+	void
+>("codestream/users/me/delete");
+
 export interface KickUserRequest {
 	teamId: string;
 	userId: string;

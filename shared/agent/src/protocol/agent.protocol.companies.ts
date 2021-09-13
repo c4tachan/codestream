@@ -1,6 +1,6 @@
 import { RequestType } from "vscode-languageserver-protocol";
 import { CSCompany, CSTeam } from "./api.protocol";
-import { CSStream } from "./api.protocol.models";
+import { CSStream, CSUser } from "./api.protocol.models";
 
 export interface FetchCompaniesRequest {
 	mine?: boolean;
@@ -35,6 +35,7 @@ export const GetCompanyRequestType = new RequestType<
 
 export interface CreateCompanyRequest {
 	name: string;
+	domainJoining?: string[];
 }
 
 export interface CreateCompanyResponse {
@@ -49,3 +50,20 @@ export const CreateCompanyRequestType = new RequestType<
 	void,
 	void
 >("codestream/company/create");
+
+export interface JoinCompanyRequest {
+	companyId: string;
+}
+
+export interface JoinCompanyResponse {
+	company: CSCompany;
+	team: CSTeam;
+	user: CSUser;
+}
+
+export const JoinCompanyRequestType = new RequestType<
+	JoinCompanyRequest,
+	JoinCompanyResponse,
+	void,
+	void
+>("codestream/companies/join");
