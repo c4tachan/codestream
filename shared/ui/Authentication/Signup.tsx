@@ -181,8 +181,7 @@ export const Signup = (props: Props) => {
 			const sendTelemetry = () => {
 				HostApi.instance.track("Account Created", {
 					email: email,
-					"Git Email Match?": email === scmEmail,
-					"Changed Invite Email?": wasInvited ? email !== props.email : undefined
+					"Git Email Match?": email === scmEmail
 				});
 			};
 
