@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from "react";
-
 import Button from "../Stream/Button";
 import { Link } from "../Stream/Link";
 import { FormattedMessage } from "react-intl";
@@ -8,7 +7,6 @@ import { useDispatch } from "react-redux";
 import { Separator } from "./Separator";
 import Icon from "../Stream/Icon";
 import { useDidMount } from "../utilities/hooks";
-import { JoinTeam } from "./JoinTeam";
 import styled from "styled-components";
 import { TextInput } from "./TextInput";
 import { HostApi } from "..";
@@ -259,12 +257,6 @@ export function CompanyCreation(props: {
 															<Link onClick={onClickTryAnother}>
 																Try using a different email address
 															</Link>
-															<br /> <br />
-															Were you invited?
-															<br />
-														</div>
-														<div className="control-group">
-															<JoinTeam useComponent={true} />
 														</div>
 													</>
 												)}
