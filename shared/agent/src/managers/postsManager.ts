@@ -1046,7 +1046,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			if (request.isProviderReview) {
 				if (lineWithMetadata) {
 					result = await providerRegistry.executeMethod({
-						method: "createPullRequestReviewComment",
+						method: "createPullRequestReviewThread",
 						providerId: parsedUri.context.pullRequest.providerId,
 						params: {
 							pullRequestId: parsedUri.context.pullRequest.id,
@@ -1057,7 +1057,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							filePath: parsedUri.path,
 							startLine: startLine,
 							endLine: endLine,
-							position: lineWithMetadata.position
+							position: lineWithMetadata.position,
+							side: parsedUri.side
 						}
 					});
 				} else {
@@ -1938,7 +1939,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					anchorFormat: "[${text}](${url})"
 				};
 		}
-	}
+	};
 
 	createProviderCard = async (
 		providerCardRequest: {
@@ -2210,7 +2211,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			Logger.error(error, `failed to create a ${attributes.issueProvider.name} card:`);
 			return undefined;
 		}
-	}
+	};
 }
 
 export async function resolveCreatePostResponse(response: CreatePostResponse) {
