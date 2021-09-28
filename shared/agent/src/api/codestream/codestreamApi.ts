@@ -34,8 +34,12 @@ import {
 	MarkItemReadRequest,
 	ReportingMessageType,
 	RepoScmStatus,
+	UpdateCompanyRequest,
+	UpdateCompanyRequestType,
+	UpdateCompanyResponse,
 	UpdateInvisibleRequest,
-	UpdatePostSharingDataRequest
+	UpdatePostSharingDataRequest,
+	UpdateTeamResponse
 } from "../../protocol/agent.protocol";
 import {
 	AccessToken,
@@ -1698,6 +1702,12 @@ export class CodeStreamApiProvider implements ApiProvider {
 	@log()
 	async joinCompany(request: JoinCompanyRequest): Promise<JoinCompanyResponse> {
 		return this.put(`/companies/join/${request.companyId}`, {}, this._token);
+	}
+
+	@lspHandler(UpdateCompanyRequestType)
+	@log()
+	async updateCompany(request: UpdateCompanyRequest): Promise<UpdateCompanyResponse> {
+		return this.put(`/companies/${request.companyId}`, request, this._token);
 	}
 
 	async setCompanyTestGroups(

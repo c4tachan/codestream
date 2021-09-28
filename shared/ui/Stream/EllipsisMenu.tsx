@@ -114,11 +114,21 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		});
 	};
 
-	const deleteTeam = () => {
+	// const deleteTeam = () => {
+	// 	confirmPopup({
+	// 		title: "Delete Team",
+	// 		message:
+	// 			"Team deletion is handled by customer service. Please send an email to support@codestream.com.",
+	// 		centered: false,
+	// 		buttons: [{ label: "OK", className: "control-button" }]
+	// 	});
+	// };
+
+	const deleteOrganizaiton = () => {
 		confirmPopup({
-			title: "Delete Team",
+			title: "Delete Organizaiton",
 			message:
-				"Team deletion is handled by customer service. Please send an email to support@codestream.com.",
+				"Organizaiton deletion is handled by customer service. Please send an email to support@codestream.com.",
 			centered: false,
 			buttons: [{ label: "OK", className: "control-button" }]
 		});
@@ -131,9 +141,9 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		if (adminIds && adminIds.includes(currentUserId!)) {
 			const submenu = [
 				{
-					label: "Change Team Name",
-					key: "change-team-name",
-					action: () => dispatch(openModal(WebviewModals.ChangeTeamName))
+					label: "Change Organization Name",
+					key: "change-company-name",
+					action: () => dispatch(openModal(WebviewModals.ChangeCompanyName))
 				},
 				{ label: "-" },
 				{
@@ -148,43 +158,43 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 					action: () => dispatch(openModal(WebviewModals.ReviewSettings)),
 					disabled: !derivedState.multipleReviewersApprove
 				},
-				{
-					label: "Live View Settings",
-					key: "live-view-settings",
-					submenu: [
-						{
-							label: "Always On",
-							checked: xraySetting === "on",
-							action: () => changeXray("on")
-						},
-						{
-							label: "Always Off",
-							checked: xraySetting === "off",
-							action: () => changeXray("off")
-						},
-						{
-							label: "User Selectable",
-							checked: !xraySetting || xraySetting === "user",
-							action: () => changeXray("user")
-						},
-						{ label: "-", action: () => {} },
-						{
-							label: "What is Live View?",
-							action: () => {
-								HostApi.instance.send(OpenUrlRequestType, {
-									url: "https://docs.codestream.com/userguide/features/myteam-section/"
-								});
-							}
-						}
-					]
-				},
+				// {
+				// 	label: "Live View Settings",
+				// 	key: "live-view-settings",
+				// 	submenu: [
+				// 		{
+				// 			label: "Always On",
+				// 			checked: xraySetting === "on",
+				// 			action: () => changeXray("on")
+				// 		},
+				// 		{
+				// 			label: "Always Off",
+				// 			checked: xraySetting === "off",
+				// 			action: () => changeXray("off")
+				// 		},
+				// 		{
+				// 			label: "User Selectable",
+				// 			checked: !xraySetting || xraySetting === "user",
+				// 			action: () => changeXray("user")
+				// 		},
+				// 		{ label: "-", action: () => {} },
+				// 		{
+				// 			label: "What is Live View?",
+				// 			action: () => {
+				// 				HostApi.instance.send(OpenUrlRequestType, {
+				// 					url: "https://docs.codestream.com/userguide/features/myteam-section/"
+				// 				});
+				// 			}
+				// 		}
+				// 	]
+				// },
 				{ label: "-" },
 				{ label: "Export Data", action: () => go(WebviewPanels.Export) },
 				{ label: "-" },
-				{ label: "Delete Team", action: deleteTeam }
+				{ label: "Delete Organization", action: deleteOrganizaiton }
 			];
 			return {
-				label: "Team Admin",
+				label: "Organization Admin",
 				key: "admin",
 				submenu
 			};
@@ -262,8 +272,8 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		...[
 			{ label: "-" },
 			{
-				label: <h3>{derivedState.team.name}</h3>,
-				key: "teamheader",
+				label: <h3>{derivedState.company.name}</h3>,
+				key: "companyHeader",
 				noHover: true,
 				disabled: true
 			},

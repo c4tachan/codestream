@@ -98,6 +98,7 @@ export enum WebviewModals {
 	ChangeUsername = "change-username",
 	ChangeWorksOn = "change-works-on",
 	ChangeTeamName = "change-team-name",
+	ChangeCompanyName = "change-company-name",
 	CreateTeam = "create-team",
 	CreateCompany = "create-company",
 	TeamSetup = "team-setup",

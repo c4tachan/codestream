@@ -166,11 +166,11 @@ export function TeamSetup(props: Props) {
 			company: state.companies[team.companyId] || {},
 			team,
 			xray: team.settings ? team.settings.xray || "user" : "user",
-			multipleReviewersApprove: isFeatureEnabled(state, "multipleReviewersApprove"),
-			repos: _sortBy(Object.values(getRepos(state)), "name")
+			multipleReviewersApprove: isFeatureEnabled(state, "multipleReviewersApprove")
+			//	repos: _sortBy(Object.values(getRepos(state)), "name")
 		};
 	});
-	const { team, repos, providers } = derivedState;
+	const { team, providers } = derivedState;
 
 	const [isLoading, setIsLoading] = useState(false);
 	const [autoJoinReposField, setAutoJoinReposField] = useState(derivedState.autoJoinRepos);
@@ -487,7 +487,7 @@ export function TeamSetup(props: Props) {
 							</Checkbox>
 						</PreConfigure>
 					</div>
-					{repos && repos.length > 0 && (
+					{/* {repos && repos.length > 0 && (
 						<>
 							<HR />
 							<h3>Repo-based Team Assignment</h3>
@@ -523,7 +523,7 @@ export function TeamSetup(props: Props) {
 								);
 							})}
 						</>
-					)}
+					)} */}
 					<HR style={{ marginBottom: 0 }} />
 					<ButtonRow>
 						<Button

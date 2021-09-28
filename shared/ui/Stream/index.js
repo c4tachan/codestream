@@ -16,6 +16,7 @@ import { ChangeWorksOn } from "./ChangeWorksOn";
 import { ChangePhoneNumber } from "./ChangePhoneNumber";
 import { ChangeAvatar } from "./ChangeAvatar";
 import { ChangeTeamName } from "./ChangeTeamName";
+import { ChangeCompanyName } from "./ChangeCompanyName";
 import { TeamSetup } from "./TeamSetup";
 import { CreatePullRequestPanel } from "./CreatePullRequestPanel";
 import { IntegrationsPanel } from "./IntegrationsPanel";
@@ -350,6 +351,7 @@ export class SimpleStream extends PureComponent {
 						{activeModal === WebviewModals.ChangePhoneNumber && <ChangePhoneNumber />}
 						{activeModal === WebviewModals.ChangePassword && <ChangePassword />}
 						{activeModal === WebviewModals.ChangeTeamName && <ChangeTeamName />}
+						{activeModal === WebviewModals.ChangeCompanyName && <ChangeCompanyName />}
 						{activeModal === WebviewModals.TeamSetup && <TeamSetup />}
 						{activeModal === WebviewModals.Keybindings && (
 							<Keybindings onClick={this.props.closeModal}>

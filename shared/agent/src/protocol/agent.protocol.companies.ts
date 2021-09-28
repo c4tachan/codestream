@@ -67,3 +67,19 @@ export const JoinCompanyRequestType = new RequestType<
 	void,
 	void
 >("codestream/companies/join");
+
+export interface UpdateCompanyRequest {
+	companyId: string;
+	name?: string;
+}
+
+export interface UpdateCompanyResponse {
+	company: CSCompany;
+}
+
+export const UpdateCompanyRequestType = new RequestType<
+	UpdateCompanyRequest,
+	UpdateCompanyResponse,
+	void,
+	void
+>("codestream/company/update");
