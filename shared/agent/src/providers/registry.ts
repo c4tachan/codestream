@@ -93,11 +93,13 @@ export * from "./okta";
 export * from "./clubhouse";
 export * from "./linear";
 
-type PR_QueryCollection = {
-	[Identifier: string]: PullRequestQuery[] | {
-		name: string;
-		query: string;
-	} []
+interface PR_Query {
+	query: string;
+	name: string;
+}
+
+interface PR_QueryCollection {
+	[Identifier: string]: (PullRequestQuery | PR_Query) []
 };
 
 const PR_QUERIES: PR_QueryCollection = {
