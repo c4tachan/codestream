@@ -153,7 +153,7 @@ export class ThirdPartyProviderRegistry {
 	private _lastProvidersPRs: ProviderPullRequests[] | undefined;
 	private _queriedPRsAgeLimit?: { providerName: string; ageLimit: number[] }[] | undefined;
 	private _pollingInterval: NodeJS.Timer | undefined;
-	private _pullrequestQueries: PR_QueryCollection;
+	private _pullrequestQueries: PR_QueryCollection = PR_QUERIES;
 
 	constructor(public readonly session: CodeStreamSession) {
 		this._pollingInterval = setInterval(this.pullRequestsStateHandler.bind(this), 120000); // every 2 minutes
@@ -166,7 +166,7 @@ export class ThirdPartyProviderRegistry {
 		if (preferences.pullRequestQueries === null) {
 			return;
 		}
-		else {
+		else { // Clear the current pr queries so any removed ones are deleted.
 			this._pullrequestQueries = {};
 		}
 		
@@ -200,7 +200,7 @@ export class ThirdPartyProviderRegistry {
 					Logger.debug(`pullRequestsStateHandler: ignoring ${provider.name} because of tokenError`);
 					continue;
 				}
-				const queries = PR_QUERIES[provider.name];
+				const queries = this._pullrequestQueries[provider.name];
 				if (queries.length) {
 					const pullRequests = await provider.getMyPullRequests({
 						queries: queries.map(_ => _.query)
@@ -289,7 +289,7 @@ export class ThirdPartyProviderRegistry {
 			_.queriedPullRequests.map((pullRequests: GetMyPullRequestsResponse[], queryIndex: number) => {
 				prNotificationMessages.push(
 					...pullRequests.map(pullRequest => ({
-						queryName: PR_QUERIES[_.providerName][queryIndex].name,
+						queryName: this._pullrequestQueries[_.providerName][queryIndex].name,
 						pullRequest
 					}))
 				);
