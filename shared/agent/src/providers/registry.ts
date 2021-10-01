@@ -1,7 +1,7 @@
 "use strict";
 import { differenceWith } from "lodash-es";
 import semver from "semver";
-import { CSMe } from "protocol/api.protocol";
+import { CSMe, CSMePreferences, PullRequestQuery } from "protocol/api.protocol";
 import { URI } from "vscode-uri";
 import { SessionContainer } from "../container";
 import { Logger } from "../logger";
@@ -93,12 +93,14 @@ export * from "./okta";
 export * from "./clubhouse";
 export * from "./linear";
 
-const PR_QUERIES: {
-	[Identifier: string]: {
+type PR_QueryCollection = {
+	[Identifier: string]: PullRequestQuery[] | {
 		name: string;
 		query: string;
-	}[];
-} = {
+	} []
+};
+
+const PR_QUERIES: PR_QueryCollection = {
 	gitlab: [
 		{
 			name: "is waiting on your review",
@@ -151,9 +153,26 @@ export class ThirdPartyProviderRegistry {
 	private _lastProvidersPRs: ProviderPullRequests[] | undefined;
 	private _queriedPRsAgeLimit?: { providerName: string; ageLimit: number[] }[] | undefined;
 	private _pollingInterval: NodeJS.Timer | undefined;
+	private _pullrequestQueries: PR_QueryCollection;
 
 	constructor(public readonly session: CodeStreamSession) {
 		this._pollingInterval = setInterval(this.pullRequestsStateHandler.bind(this), 120000); // every 2 minutes
+
+		// Add handlers to use the user's configured PR filters
+		this.session.onDidChangePreferences(this.onPreferencesChanged, this);
+	}
+	
+	private onPreferencesChanged(preferences: CSMePreferences) {
+		if (preferences.pullRequestQueries === null) {
+			return;
+		}
+		else {
+			this._pullrequestQueries = {};
+		}
+		
+		preferences.pullRequestQueries?.forEach(prq => {
+			this._pullrequestQueries[prq.providerId].push(prq);
+		});
 	}
 
 	private async pullRequestsStateHandler() {
