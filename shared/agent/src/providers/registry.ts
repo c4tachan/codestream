@@ -179,12 +179,14 @@ export class ThirdPartyProviderRegistry {
 
 		for(const prov of [...(Object.values(preferences.pullRequestQueries))]) {
 			for(const prq of [...Object.values(prov)]) {
-				const provName = providers.find(_ => _.getConfig().id === prq.providerId )?.name ?? "unknown";
-				if(this._pullrequestQueries[provName] === undefined)
-				{
-					this._pullrequestQueries[provName] = [];
+				if(prq.name !== 'Recent') {
+					const provName = providers.find(_ => _.getConfig().id === prq.providerId )?.name ?? "unknown";
+					if(this._pullrequestQueries[provName] === undefined)
+					{
+						this._pullrequestQueries[provName] = [];
+					}
+					this._pullrequestQueries[provName].push(prq);
 				}
-			this._pullrequestQueries[provName].push(prq);
 			}
 		}
 	}
