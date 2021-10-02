@@ -1,7 +1,7 @@
 "use strict";
 import { differenceWith } from "lodash-es";
 import semver from "semver";
-import { CSMe } from "protocol/api.protocol";
+import { CSMe, CSMePreferences, PullRequestQuery } from "protocol/api.protocol";
 import { URI } from "vscode-uri";
 import { SessionContainer } from "../container";
 import { Logger } from "../logger";
@@ -93,12 +93,16 @@ export * from "./okta";
 export * from "./clubhouse";
 export * from "./linear";
 
-const PR_QUERIES: {
-	[Identifier: string]: {
-		name: string;
-		query: string;
-	}[];
-} = {
+interface PR_Query {
+	query: string;
+	name: string;
+}
+
+interface PR_QueryCollection {
+	[Identifier: string]: (PullRequestQuery | PR_Query) []
+};
+
+const PR_QUERIES: PR_QueryCollection = {
 	gitlab: [
 		{
 			name: "is waiting on your review",
@@ -151,9 +155,40 @@ export class ThirdPartyProviderRegistry {
 	private _lastProvidersPRs: ProviderPullRequests[] | undefined;
 	private _queriedPRsAgeLimit?: { providerName: string; ageLimit: number[] }[] | undefined;
 	private _pollingInterval: NodeJS.Timer | undefined;
+	private _pullrequestQueries: PR_QueryCollection = PR_QUERIES;
 
 	constructor(public readonly session: CodeStreamSession) {
 		this._pollingInterval = setInterval(this.pullRequestsStateHandler.bind(this), 120000); // every 2 minutes
+
+		// Add handlers to use the user's configured PR filters
+		this.session.onDidChangePreferences(this.onPreferencesChanged, this);
+	}
+	
+	private async onPreferencesChanged(preferences: CSMePreferences) {
+		if (preferences.pullRequestQueries === undefined) {
+			return;
+		}
+		else { // Clear the current pr queries so any removed ones are deleted.
+			this._pullrequestQueries = {};
+		}
+		
+		const user = await SessionContainer.instance().session.api.meUser;
+		if (!user) return;
+
+		const providers = await this.getConnectedPullRequestProviders(user);
+
+		for(const prov of [...(Object.values(preferences.pullRequestQueries))]) {
+			for(const prq of [...Object.values(prov)]) {
+				if(prq.name !== 'Recent') {
+					const provName = providers.find(_ => _.getConfig().id === prq.providerId )?.name ?? "unknown";
+					if(this._pullrequestQueries[provName] === undefined)
+					{
+						this._pullrequestQueries[provName] = [];
+					}
+					this._pullrequestQueries[provName].push(prq);
+				}
+			}
+		}
 	}
 
 	private async pullRequestsStateHandler() {
@@ -181,7 +216,7 @@ export class ThirdPartyProviderRegistry {
 					Logger.debug(`pullRequestsStateHandler: ignoring ${provider.name} because of tokenError`);
 					continue;
 				}
-				const queries = PR_QUERIES[provider.name];
+				const queries = this._pullrequestQueries[provider.name];
 				if (queries.length) {
 					const pullRequests = await provider.getMyPullRequests({
 						queries: queries.map(_ => _.query)
@@ -270,7 +305,7 @@ export class ThirdPartyProviderRegistry {
 			_.queriedPullRequests.map((pullRequests: GetMyPullRequestsResponse[], queryIndex: number) => {
 				prNotificationMessages.push(
 					...pullRequests.map(pullRequest => ({
-						queryName: PR_QUERIES[_.providerName][queryIndex].name,
+						queryName: this._pullrequestQueries[_.providerName][queryIndex].name,
 						pullRequest
 					}))
 				);
