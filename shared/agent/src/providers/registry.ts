@@ -164,17 +164,29 @@ export class ThirdPartyProviderRegistry {
 		this.session.onDidChangePreferences(this.onPreferencesChanged, this);
 	}
 	
-	private onPreferencesChanged(preferences: CSMePreferences) {
-		if (preferences.pullRequestQueries === null) {
+	private async onPreferencesChanged(preferences: CSMePreferences) {
+		if (preferences.pullRequestQueries === undefined) {
 			return;
 		}
 		else { // Clear the current pr queries so any removed ones are deleted.
 			this._pullrequestQueries = {};
 		}
 		
-		preferences.pullRequestQueries?.forEach(prq => {
-			this._pullrequestQueries[prq.providerId].push(prq);
-		});
+		const user = await SessionContainer.instance().session.api.meUser;
+		if (!user) return;
+
+		const providers = await this.getConnectedPullRequestProviders(user);
+
+		for(const prov of [...(Object.values(preferences.pullRequestQueries))]) {
+			for(const prq of [...Object.values(prov)]) {
+				const provName = providers.find(_ => _.getConfig().id === prq.providerId )?.name ?? "unknown";
+				if(this._pullrequestQueries[provName] === undefined)
+				{
+					this._pullrequestQueries[provName] = [];
+				}
+			this._pullrequestQueries[provName].push(prq);
+			}
+		}
 	}
 
 	private async pullRequestsStateHandler() {
